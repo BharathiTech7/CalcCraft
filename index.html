@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Best Performing Student Recognition</title>
+  <style>
+    /* Add simple styling */
+    h1,h2{
+text-align: center;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); /* Blue gradient */
+  color: white; /* White text on gradient background */
+ 
+    }
+    .form-container {
+      margin-bottom: 20px;
+    }
+    input {
+      padding: 8px;
+      margin: 5px;
+      width: 200px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      margin: 5px 0;
+    }
+   .form-container{
+        display:flex;
+       align-items: center;
+        flex-direction: column;
+        
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Top Students</h1>
+  <ul id="student-list">
+    <!-- Top students will be displayed here -->
+  </ul>
+
+  <h2>Add New Student</h2>
+  <div class="form-container">
+    <input type="text" id="name" placeholder="Name" required><br>
+    <input type="number" id="cgpa" placeholder="CGPA" required step="0.01"><br>
+    <input type="number" id="hackathon-count" placeholder="Hackathon Count" required><br>
+    <input type="number" id="paper-presentations" placeholder="Paper Presentations" required><br>
+    <input type="number" id="ta-contributions" placeholder="TA Contributions" required><br>
+    <button onclick="addStudent()">Add Student</button>
+  </div>
+
+  <script>
+    // Function to fetch top students from the backend
+    async function fetchTopStudents() {
+      try {
+        const response = await fetch('http://localhost:5000/rank_students');
+        const students = await response.json();
+        displayTopStudents(students);
+      } catch (error) {
+        console.error('Error fetching top students:', error);
+      }
+    }
+
+    // Function to display the top students in the list
+    function displayTopStudents(students) {
+      const studentList = document.getElementById('student-list');
+      studentList.innerHTML = ''; // Clear the list before adding new items
+      students.forEach((student, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${student.name} - Rank: ${index + 1}, Score: ${student.score.toFixed(2)}`;
+        studentList.appendChild(li);
+      });
+    }
+
+    // Function to add a new student
+    async function addStudent() {
+      const name = document.getElementById('name').value;
+      const cgpa = parseFloat(document.getElementById('cgpa').value);
+      const hackathonCount = parseInt(document.getElementById('hackathon-count').value);
+      const paperPresentations = parseInt(document.getElementById('paper-presentations').value);
+      const taContributions = parseInt(document.getElementById('ta-contributions').value);
+
+      const newStudent = {
+        name,
+        cgpa,
+        hackathon_count: hackathonCount,
+        paper_presentations: paperPresentations,
+        ta_contributions: taContributions
+      };
+
+      try {
+        await fetch('http://localhost:5000/add_student', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newStudent),
+        });
+        fetchTopStudents(); // Refresh the student list after adding a new student
+      } catch (error) {
+        console.error('Error adding student:', error);
+      }
+    }
+
+    // Initial fetch to display top students
+    fetchTopStudents();
+  </script>
+</body>
+</html>
